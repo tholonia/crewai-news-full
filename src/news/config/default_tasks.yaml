@@ -1,0 +1,38 @@
+
+
+research_task:
+  description: |
+    Collect and analyze data on the specific topic of {topic}. Your research should cover emerging trends, key technologies, market impacts, and future developments within the given date range. Ensure that all findings are well-documented with appropriate references and links.
+    The expected timeframe for this task is from {start_date} to {end_date}. You must provide a comprehensive overview that includes detailed references to all sources of information used.
+
+  expected_output: |
+    A list of the top 10 most relevant bullet points about the topic, including:
+      - Key trend 1 with reference
+      - Key trend 2 with reference
+      ...
+      - Key trend 10 with reference
+
+  parameters:
+    start_date: "2020-01-01"
+    end_date: "2024-12-31"
+
+
+reporting_task:
+  description: |
+    Review the content provided from the research task and expand each topic into a full section for a comprehensive report. The report should be detailed, including any and all relevant information, and well-documented with appropriate references and links. Ensure that each main topic is thoroughly covered and that the final report is clear and informative. The data must be from {start_date} to {end_date}.
+  expected_output: |
+    A markdown-formatted report titled "Research on {topic}" with a subtitle "{start_date} - {end_date}". The report should include the following structure:
+    
+    # Research on {topic}
+    ###### {start_date} - {end_date}
+    
+    ## Section 1: Key Trend 1
+    Detailed explanation and analysis of key trend 1. Include all relevant information and references.
+    
+    ## Section 2: Key Trend 2
+    Detailed explanation and analysis of key trend 2. Include all relevant information and references.
+    
+    ... (and so on for each of the 10 key trends)
+    
+    ### References
+    A complete list of references and links used throughout the report.

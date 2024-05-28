@@ -1,0 +1,13 @@
+
+
+research_task:
+  description: |
+    Finds the public website and contact information for the author {topic}
+  expected_output: |
+    The website URL and contact information for author {topic}.
+
+reporting_task:
+  description: |
+    Review the URL and check that it appears to be legitmate.
+  expected_output: |
+    The author's name, their website and their contact information

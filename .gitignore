@@ -1,0 +1,14 @@
+.env
+__pycache__/
+.directory
+.idea/
+PUSH
+db/
+poetry.lock
+sauth
+src/news/blog-posts/
+src/news/config/.directory
+src/news/db/
+src/news/lib/.directory
+src/news/output
+writers.sh
