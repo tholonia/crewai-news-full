@@ -62,27 +62,27 @@ Let's create wonders together with the power and simplicity of crewAI.
 
 # Part II
 
-|>>
+Changes made to the projest created by running:
 
-While poetry is not mandatory, it makes life easier, especially when it comes to version dependency, which is a total nightmare using pip.  If you need to run crew outside of poetry, go ahead and install and run poetry first, the, then look in the `poetry.lock` file to get the packages and their versions to create a `requirements.txt` file.
+```
+crewai create news
+```
 
-|>>
+Which creates a structure that is not only reccomended, but which will be a prereq when they roll out their API.
 
-I have added a `gvars.py`  file which is used to hold global variables across classes and modules.  Perhaps not a 'best practice' in coding, but very convenient and useful.  Also added the `utils.py` and `gutils.py`, which hold simple utility functions.  The `gutils.py` are utils that do NOT require the `gvars.py`, while `utils.py` does.  This is to avoid cyclical dependencies.
-
-|>>
-
-To get VSCode to not complain about missing packages, I created a conda environment (miniforge3 version) and installed the packages, then switched my Python interpreter to that version.  Perhaps there is a way to select a poetry venv, but I don't see how.
-
-|>>
-
-To run from the command line outside of poetry, create a wrapper script in the projects root folder like this:
+- While poetry is not mandatory, it makes life easier, especially when it comes to version dependency, which is a total nightmare using pip.  If you need to run crew outside of poetry, go ahead and install and run poetry first, the, then look in the `poetry.lock` file to get the packages and their versions to create a `requirements.txt` file.
+- Moved all the global vars, like API keys and counters to environment variables.
+- Added the `utils.py` which holds general utility functions.
+- To get VSCode to not complain about missing packages, I created a conda environment (miniforge3 version) and installed the packages (see `requirements.txt`), then switched my Python interpreter to that version.  Perhaps there is a way to select a poetry venv, but I don't see how.
+- To run from the command line outside of poetry, create a wrapper script in the projects root folder like this:
 
 ```python
 #!/bin/env python
 import src.news.main as main
 main.run()
 ```
+
+See `cl_run.py` which has CL exmaples as well.
 
 Make it executable, then you can just type `./scriptname.py` from inside the project folder.  You must have all the packages installed and be in the venv.
 
@@ -94,27 +94,9 @@ KeyError: 'OPENAI_API_BASE_URL'
 
 which you do get outside of poetry.
 
-|>>
+- Added `lib` folder and put a search and model selector classed in which allows for easy switching between OpenAI, a local Ollama of a local LM-Server ().
+- Added langsmith monitoring by project name.
 
-Added `lib` folder and put a model selector class in `model_selector.py` which allows for the choosing between OpenAI, a local Ollama of a local LM-Server ().
-
-Running the questions that are automatically installed, I get the following specs.  (Local machine is 4080Ti)
-
-OpenAI/GPT4-turbo: 
-
-- 178 seconds, made a nice full page report in MD with outlines
-
-Ollama/phi3:
-
-- 90 seconds, made report of a few sad sentences.
-
-LMS/phi3 or Claude
-
-- Crashes
-
-|>>
-
-Added 
 ```
 from langsmith.wrappers import wrap_openai
 from langsmith import traceable
@@ -122,27 +104,40 @@ from langsmith import traceable
 
 which allows for remote tracking of the workflow on the site https://smith.langchain.com/.  So far, this is the best way to track workflow activity (that I have found).  More info at https://docs.smith.langchain.com/
 
+- Added command line switches with  which allows for easier testing of various models, etc., Current supporting teh following
 
-|>>
-Added command line switches with getopt() which allows for easier testing of varers flags and services.
+```
+    -t, --topic
+    -h, --help
+    -m, --memory
+    -d, --delegation
+    -v, --verbose
+    -l, --llm
+    -S, --searcher
+    -r, --daterange
+    -p, --prefix
+    -s, --server
+    
+Example:
+	cl_run.py \
+        --topic "Bitcoin news" \
+        --server OPENAI \
+        --verbose 2 \
+        --memory 0 \
+        --delegation 0 \
+        --llm gpt-3.5-turbo \
+        --daterange "10 years ago:today" \
+        --searcher SER \
+        --prefix 'default' \
+```
+
+- Added option to select various predefined agents and tasks (`--prefix`)
 
 
 
-"""
-This is the system prompt I used to tweak my local LLM's... but they still don't work well enough :/
-
-You are an AI language model designed to be a thorough and complete researcher. Your goal is to provide accurate, detailed, and well-researched information. When answering questions or providing information, follow these guidelines:
-Accuracy: Ensure all facts are correct and verified from reliable sources.
-Detail: Provide comprehensive answers, covering all relevant aspects of the topic.
-Clarity: Use clear and precise language. Avoid ambiguity and ensure the reader can easily understand the information.
-Citations: Where applicable, cite sources to back up your information.
-Verification: Double-check facts and data for accuracy.
-Clarification: Proactively ask for additional information if a query is ambiguous or lacking in detail.
-Objectivity: Present information in an unbiased and neutral manner.
-Relevance: Stay focused on the topic and avoid providing unnecessary or unrelated information.
-Structure: Organize information logically, using headings, bullet points, and paragraphs to enhance readability.
-"""
-  
 
 
-   pip install google-search-results
+# TODO
+
+- Still not clear where to put th .env file.
+- 
