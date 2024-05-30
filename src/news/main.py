@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# import warnings
+# with warnings.catch_warnings():
+#     warnings.filterwarnings("ignore",category=FutureWarning)
 
 # Preload all environment variables before other imports
 import dotenv
@@ -7,7 +10,7 @@ dotenv.load_dotenv(dotenv_path='/home/jw/src/crewai/news/.env', override=True)
 import sys
 import getopt
 import time
-# project pkgs
+
 from src.news.lib.utils import (
     gget,
     gput,
@@ -18,43 +21,32 @@ from src.news.lib.utils import (
     printstats,
 )
 from src.news.lib.setserver import set_server
-from news.crew import NewsCrew
-# 3rd party pkgs
-from langsmith.wrappers import wrap_openai
-from langsmith import traceable
+# needs internet
+# from langsmith.wrappers import wrap_openai
+# from langsmith import traceable
 
 
 # Initialize vars to defaults
+
 start_date, end_date = getdates("100 years ago:today") or (0, 0)
-gput('start_date', start_date)
-gput('end_date', end_date)
+gput('start_date', start_date)  # Defaults to 100 years ago
+gput('end_date', end_date)  # Defaults to today
+gput('searcher', 'OFF')  # Defaults to OFF
+gput("LANGCHAIN_PROJECT", new_project_name())
+gput("inputfile","None") # Defaults to Serper
+gput("topic","None") # Defaults to Serper
+gput("test","test") # Defaults to Serper
 
-project_name = new_project_name()
-gput("LANGCHAIN_PROJECT", project_name)
-
-searcher = gput("searcher","SER") # Defaults to Serper
 
 # Parse command-line arguments provided
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "ht:v:m:s:r:p:l:d:S:", 
+    opts, args = getopt.getopt(sys.argv[1:], "ht:v:m:s:r:p:l:d:S:i:", 
                                  ["help","topic=","verbose=","memory=","server=",
-                                  "daterange=","prefix=","llm=","delegation=","searcher="])
+                                  "daterange=","prefix=","llm=","delegation=","searcher=","inputfile="])
 except getopt.GetoptError as e:
     print(str(e))
     showhelp()
     sys.exit(2)
-
-# options = {
-#     "-t": "--topic",
-#     "-h": "--help",
-#     "-m": "--memory",
-#     "-d": "--delegation",
-#     "-v": "--verbose",
-#     "-l": "--llm",
-#     "-r": "--daterange",
-#     "-p": "--prefix",
-#     "-s": "--server"
-# }
 
 for opt, arg in opts:
     if opt in ("-t", "--topic"):        gput("topic", arg)
@@ -64,6 +56,7 @@ for opt, arg in opts:
     elif opt in ("-v", "--verbose"):    gput("verbose", int(arg))
     elif opt in ("-l", "--llm"):        gput("LIVE_MODEL_NAME", arg)
     elif opt in ("-S", "--searcher"):   gput("searcher", arg)
+    elif opt in ("-i", "--inputfile"):  gput("inputfile", arg)
     
     elif opt in ("-r", "--daterange"):
         thesedates = getdates(arg)
@@ -85,6 +78,23 @@ for opt, arg in opts:
         update_live_env("API_BASE_URL",arg)
         update_live_env("API_KEY",arg)
         update_live_env("MODEL_NAME",arg)
+        
+print(f">>> |{gget('inputfile')}| |{gget('topic')}|")
+
+if gget("inputfile") != "None" and (gget("topic") == "None" or gget("topic") == ""): 
+    gput("topic",gget("inputfile")) # Defaults to Serperinput  
+    
+    
+print(gget("inputfile"),gget("topic"))    
+# exit()
+
+# these are loAded after we set all teh default vars so the loaded modules see the updated defaults
+# project pkgs
+
+
+from src.news.crew import NewsCrew
+
+
 
 def run():
     """
@@ -92,6 +102,8 @@ def run():
     inputs and measures the runtime.
     """
     printstats("before")
+    
+    # exit()
     # Inputs will automatically interpolate any tasks and agents information    
     inputs = {
         'topic': gget("topic"), #'AI LLMs'

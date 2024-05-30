@@ -1,0 +1,69 @@
+research_task:
+    name: Collect Research Information
+    description: >
+      Your task is to collect information on academic and technical papers published between the specified dates. Focus on finding interesting and relevant information within these dates. Ensure to include all references in your findings.
+    expected_output: >
+      A YAML file containing the collected information with the following structure:
+      papers:
+          title: "Title of the Paper"
+          authors: 
+              "Author 1"
+              "Author 2"
+          publication_date: "YYYY-MM-DD"
+          main_goal: "Main goal of the paper"
+          fundamental_concept: "Fundamental concept of the paper"
+          technical_approach: "Technical approach used"
+          distinctive_features: "Distinctive features of the paper"
+          advantages_limitations: "Advantages and limitations of the approach"
+          experimental_setup_results: "Details of experimental setup and results"
+          conclusion: "Conclusion of the paper"
+          references: 
+              "Reference 1"
+              "Reference 2"
+    input_parameters:
+        start_date: "YYYY-MM-DD"
+        end_date: "YYYY-MM-DD"
+    async_execution: true
+
+
+
+reporting_task:
+    name: Create Detailed Report
+    description: >
+      Your task is to review the content received from the researcher and expand each topic into a full section for a report. Make sure the report is detailed and contains any and all relevant information. Include references in each section as needed.
+    expected_output: >
+      A detailed report formatted as markdown with the following structure:
+      # Title of the Report
+
+      **From:** YYYY-MM-DD  
+      **To:** YYYY-MM-DD  
+
+      ## Title and Authors of the Paper
+      Detailed information about the title and authors of the paper.
+
+      ## Main Goal and Fundamental Concept
+      Detailed description of the main goal and fundamental concept.
+
+      ## Technical Approach
+      Comprehensive explanation of the technical approach used.
+
+      ## Distinctive Features
+      In-depth analysis of the distinctive features of the paper.
+
+      ## Advantages and Limitations
+      Detailed discussion of the advantages and limitations of the approach.
+
+      ## Experimental Setup and Results
+      Thorough explanation of the experimental setup and results.
+
+      ## Conclusion
+      Final conclusion of the paper.
+
+      ## References
+        Reference 1
+        Reference 2
+        ...
+    input_parameters:
+        research_data: "YAML data from the research task"
+    async_execution: false
+

@@ -1,4 +1,9 @@
 # Python imports
+
+# import warnings
+# with warnings.catch_warnings():
+#     warnings.filterwarnings("ignore",category=FutureWarning)
+    
 import os
 from pprint import pprint
 from logging import log, basicConfig
@@ -20,10 +25,10 @@ from crewai.project import (
 #     FileReadTool,
 #     WebsiteSearchTool,
 # )
-
+from colorama import Back as B, Fore as F
+ 
 # Project imports
-from src.news.lib.utils import is_verbose
-from src.news.lib.utils import gget,gput
+from src.news.lib.utils import gget, is_verbose, mkdir
 from crewai_tools import Tool
 
 # gput("searcher","DDG") #override the input... for testing
@@ -31,6 +36,7 @@ from crewai_tools import Tool
 search_name = "Search"
 search_desc = "useful for when you need to answer questions about current events"
 
+"""
 if gget('searcher') == "EXA":
     print(f"Using Search API: EXA")
     from src.news.lib.exa_search_tool import ExaSearchToolFull
@@ -51,10 +57,10 @@ if gget('searcher') == "SER":
     search = GoogleSerperAPIWrapper(params={"engine": "bing","gl": "us","hl": "en"})
     search_tool = Tool(name=search_name, description=search_desc, func=search.run)
 
-if gget('searcher') == "SAP": # defaults to SAP
+# REF: https://python.langchain.com/v0.1/docs/integrations/providers/serpapi/
+# REf: https://github.com/langchain-ai/langchain/issues/3485
+if gget('search') == "SAP": # defaults to SAP
     print(f"Using Search API: SAP")
-    # REF: https://python.langchain.com/v0.1/docs/integrations/providers/serpapi/
-    # REf: https://github.com/langchain-ai/langchain/issues/3485
     print(">>>",gget('SERPAPI_API_KEY'))
     from langchain_community.utilities import SerpAPIWrapper
     search = SerpAPIWrapper(params={"engine": "bing","gl": "us","hl": "en"})
@@ -63,9 +69,8 @@ if gget('searcher') == "SAP": # defaults to SAP
 
 # Select which server to use
 if gget('server') == "GOOGLE":
-    # print("Sorry, GGL is currently not working")
-    # exit()
-
+    print("Sorry, GGL is currently not working")
+    exit()
     import google.generativeai as genai
     from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
     
@@ -80,7 +85,6 @@ if gget('server') == "GOOGLE":
     )
 else:
     from langchain_openai import ChatOpenAI as OpenAI
-
     llm_server = OpenAI(
         openai_api_base=gget("LIVE_API_BASE_URL"),
         openai_api_key=gget("LIVE_API_KEY"),
@@ -90,6 +94,53 @@ else:
         max_tokens=4096,  # gpt-3.5 max_tokens = 4096
     )
 
+"""
+
+from langchain_openai import ChatOpenAI as OpenAI
+
+llm_server = OpenAI(
+    openai_api_base=gget("LIVE_API_BASE_URL"),
+    openai_api_key=gget("LIVE_API_KEY"),
+    model=gget("LIVE_MODEL_NAME"),
+    temperature=0.0,
+    verbose=is_verbose(gget("verbose")),
+    max_tokens=4096,  # gpt-3.5 max_tokens = 4096
+)
+
+from crewai_tools import FileReadTool
+file_read_tool = FileReadTool(file_path="/tmp/tmp2q_zmebb.txt")
+
+
+# Create an outfile name root like output_file that looks like
+# "rpt328-OLL-phi3_dtr_"
+
+#output_file_basename = "reports/rpt" + gget("COUNTER") + "-" + gget('server') + "_" + gget("LIVE_MODEL_NAME") + "_" + gget('topic')[:10].replace(" ", "-") + ".md"
+
+
+topic_stub=gget('topic')[:10].replace(" ", "-")
+report_dir = mkdir(f"reports-{topic_stub}")
+outbase = f"{report_dir}-{gget('server')[:3]}-{gget('LIVE_MODEL_NAME')}"
+
+print(f"outbase: {outbase}")
+print(f"report_dir: {report_dir}")
+print(f"topic_stub: {topic_stub}")
+
+
+
+
+
+from src.news.lib.tracing import (
+    reporting_analyst_tracer, 
+    reporting_task_tracer,
+    research_task_tracer, 
+    researcher_tracer,
+    # tracer,
+    agent_tracer,
+    task_tracer,
+    pre,
+    post,
+)
+
 
 @CrewBase
 class NewsCrew():
@@ -97,8 +148,12 @@ class NewsCrew():
     agents_config = "config/" + gget('agents_yaml')
     tasks_config = f"config/" + gget('tasks_yaml')
 
+
     @agent
+    # @agent_tracer(before_func=pre(name="researcher",colors=F.RED+B.BLACK), after_func=post(name="researcher"))
     def researcher(self) -> Agent:
+        print(("AGENT researcher"))
+        stub = "A-researcher"
         return Agent(
             config=self.agents_config['researcher'],
             verbose=is_verbose(gget("verbose")),
@@ -106,39 +161,67 @@ class NewsCrew():
             allow_delegation=bool(int(gget("delegation"))),
             llm=llm_server,
             tools= [
-                # docs_tool,
-                # file_tool,
+                file_read_tool,
                 # search_tool,
                 # web_rag_tool,
-            ]
+            ],
+            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
+            
         )
 
     @agent
+    @agent_tracer(
+        before_func=pre(
+            name="reporting_analyst",
+            colors=F.GREEN+B.BLACK), 
+        after_func=post(name="reporting_analyst")
+    
+    )
     def reporting_analyst(self) -> Agent:
+        print(("AGENT reporting_analyst"))
+        stub = "A-reporting_analyst"
         return Agent(
             config=self.agents_config['reporting_analyst'],
             verbose=is_verbose(gget("verbose")),
             memory=bool(int(gget("memory"))),
             allow_delegation=bool(int(gget("delegation"))),
-            llm=llm_server
+            llm=llm_server,
+            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
+            # callback=reporting_analyst_complete,
+            
         )
 
     @task
+    @task_tracer(
+        before_func=pre(
+            name="research_task",
+            colors=F.CYAN+B.BLACK), 
+        after_func=post(name="research_task")
+    )
+    
     def research_task(self) -> Task:
+        print(("TASK research_task"))        
+        stub = "T-research_task"
         return Task(
             config=self.tasks_config['research_task'],
             agent=self.researcher(),
+            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
+            # callback = research_task_complete,
         )
 
     @task
+    # @reporting_task_tracer(before_func=pre(name="reporting_task",colors=F.MAGENTA+B.BLACK), after_func=post)
     def reporting_task(self) -> Task:
+        print(("TASK reporting_task"))        
+        stub = "T-reporting_task"
         # output_file = f"reports/{gget('COUNTER')}-{gget('server')}_{gget('LIVE_MODEL_NAME')}_{gget('topic')[:10].replace(' ','-')}.md"
-        output_file = "reports/report" + gget("COUNTER") + "-" + gget('server') + "_" + gget(
-            "LIVE_MODEL_NAME") + "_" + gget('topic')[:10].replace(" ", "-") + ".md"
         return Task(
             config=self.tasks_config['reporting_task'],
             agent=self.reporting_analyst(),
-            output_file=output_file,
+            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
+            # callback = reporting_task_complete,
+
+
         )
 
     @crew

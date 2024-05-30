@@ -10,6 +10,19 @@ from datetime import datetime
 import datetime as fubared_datetime # python's datetime functions are very badly designed (see note in code)
 
 
+def mkdir(directory_path):
+    """
+    Check if the directory exists, and if not, create it.
+    :param directory_path: Path of the directory to check/create.
+    """
+    if not os.path.exists(directory_path):
+        # print(f"Directory '{directory_path}' does not exist. Creating it now.")
+        os.makedirs(directory_path)
+    else:
+        pass
+        # print(f"Directory '{directory_path}' already exists.")
+    return directory_path
+
 def gget(key):
     """
     The `gget` function retrieves a specific key from a .env file located at a specified path.
@@ -21,7 +34,7 @@ def gget(key):
     file located at "/home/jw/src/crewai/news/.env".
     """
     return dotenv.get_key(dotenv_path="/home/jw/src/crewai/news/.env",key_to_get=key)
-
+#%% TODO 
 def gput(key,val):
     """
     The `gput` function sets a key-value pair in a .env file and also updates the corresponding
@@ -38,6 +51,7 @@ def gput(key,val):
     # print(type(val))
     dotenv.set_key(dotenv_path="/home/jw/src/crewai/news/.env",key_to_set=key,value_to_set=val)
     os.environ[key]=val
+    return val
 
 def printstats(stage):
     """Prints stats and data before and after run"""
@@ -45,9 +59,10 @@ def printstats(stage):
     before = f"""
     ┌──────────────────────────────────────────────────────────── 
     │           PROJECT_NAME: {gget("LANGCHAIN_PROJECT")} ({gget("server")})
-    │    LIVE_API_BASE_URL: {gget("LIVE_API_BASE_URL")}
-    │      LIVE_MODEL_NAME: {gget("LIVE_MODEL_NAME")}
+    │      LIVE_API_BASE_URL: {gget("LIVE_API_BASE_URL")}
+    │        LIVE_MODEL_NAME: {gget("LIVE_MODEL_NAME")}
     │                  Topic: |{gget("topic")}|
+    │              InoutFile: |{gget("inputfile")}|
     │                Seacher: {gget("searcher")}
     │                Verbose: {gget("verbose")}/{is_verbose(gget("verbose"))}
     │                 Memory: {gget("memory")}
