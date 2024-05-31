@@ -11,15 +11,8 @@ src/news/config/.directory
 src/news/db/
 src/news/lib/.directory
 src/news/output
+reports/
 writers.sh
-415-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
-416-reports-analyze-OLL-phi3_dtr-reporting_task-analyze.md
-416-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
-417-reports-analyze-OLL-phi3_dtr-reporting_task-analyze.md
-417-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
-418-reports-analyze-OLL-phi3_dtr-reporting_task-analyze.md
-418-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
-420-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
-423-reports-analyze-OLL-phi3_dtr-T-research_task-analyze.md
 x.py
 461-reports-/tmp/tmp2q-OLL-phi3_dtr:latest-T-research_task-/tmp/tmp2q.md
+DEADJOE

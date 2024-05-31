@@ -9,6 +9,13 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import datetime as fubared_datetime # python's datetime functions are very badly designed (see note in code)
 
+def tryit(kwargs, arg, default):
+    """assign a vale to var from a kwargs ary, or set to default """
+    try:
+        rs = kwargs[arg]
+    except:
+        rs = default
+    return rs
 
 def mkdir(directory_path):
     """

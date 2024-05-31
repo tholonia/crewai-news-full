@@ -1,58 +1,40 @@
+from colorama import Back, Fore 
 from pprint import pprint
-from colorama import Back as B, Fore as F
+import functools
+from src.news.lib.utils import tryit
 
-def pre(*args, **kwargs):
-    print("pre: ",args,kwargs)
-    colors=kwargs['colors']
-    name = kwargs['name']
-    print(colors,flush=True)
-    print(f"ENTERING {name}")
+def pre(name, colors):
+# def pre(args,kwargs):
+    # print("-------------------------------------------------------------------------")
+    # pprint(args)
+    # pprint(kwargs)
+    # print("=========================================================================")
+    # print(Fore.LIGHTWHITE_EX + Back.RED + f"{colors}" + Fore.RESET)
+    print(colors, flush=True,end="")
+    print(f"ENTERING {name}", flush=True,end="")
+    print(Fore.RESET+Back.RESET,flush=True,)
 
-def post(*args, **kwargs):
-    name = kwargs['name']
-    print(f"LEAVING {name}")
-
-    # print(F.RESET+B.RESET,flush=True)
-    # exit()
-    # print("After execution: Doing some cleanup work.")
+def post(name,colors):
+    print(colors, flush=True,end="")
+    print(f"LEAVING {name}", flush=True,end="")
+    print(Fore.RESET+Back.RESET, flush=True,)
     
 def agent_tracer(before_func=None, after_func=None, **kwargs):
-    print("agent_tracer: ",kwargs)
     def decorator(target_func):
         def wrapper(*args, **kwargs):
             if before_func:
                 before_func(*args, **kwargs)
             result = target_func(*args, **kwargs)
             if after_func:
-                after_func(*args, **kwargs)
+                after_func()
             return result
         return wrapper
-    return decorator    
-    
-    
+    return decorator
+
 def task_tracer(before_func=None, after_func=None, **kwargs):
-    print("task_tracer: ",kwargs)
+
     def decorator(target_func):
-        def wrapper(*args, **kwargs):
-            if before_func:
-                before_func(*args, **kwargs)
-            result = target_func(*args, **kwargs)
-            if after_func:
-                after_func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator    
-    
-    
-    
-    
-    
-    
-    
-    
-def researcher_tracer(before_func=None, after_func=None, **kwargs):
-    # print("tracing: ",kwargs)
-    def decorator(target_func):
+        @functools.wraps(target_func)
         def wrapper(*args, **kwargs):
             if before_func:
                 before_func(*args, **kwargs)
@@ -62,80 +44,25 @@ def researcher_tracer(before_func=None, after_func=None, **kwargs):
             return result
         return wrapper
     return decorator
+    
+    
+def on_task_completion(*args,**kwargs):
+    print(Fore.BLACK+Back.GREEN)
+    name = tryit(kwargs,"name","none")
+    print(f"┌───────────────────────────────────────────────────────────────────────────────────────────────────┐")
+    print(f"│  {name}")
+    print(f"└───────────────────────────────────────────────────────────────────────────────────────────────────┘")
+    print(f"args: |{args}|")
+    print(f"type: |{type(args)}|")
+    print("=--==-=-=--")
+    print(f"kwargs: |{kwargs}|")
+    # print(f"│  {task_result}")
+    print(Fore.RESET+Back.RESET)
 
-def reporting_analyst_tracer(before_func=None, after_func=None, **kwargs):
-    # print("tracing: ",kwargs)
-    def decorator(target_func):
-        def wrapper(*args, **kwargs):
-            if before_func:
-                before_func(*args, **kwargs)
-            result = target_func(*args, **kwargs)
-            if after_func:
-                after_func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator
-
-def research_task_tracer(before_func=None, after_func=None, **kwargs):
-    # print("tracing: ",kwargs)
-    def decorator(target_func):
-        def wrapper(*args, **kwargs):
-            if before_func:
-                before_func(*args, **kwargs)
-            result = target_func(*args, **kwargs)
-            if after_func:
-                after_func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator
-
-
-def reporting_task_tracer(before_func=None, after_func=None, **kwargs):
-    # print("tracing: ",kwargs)
-    def decorator(target_func):
-        def wrapper(*args, **kwargs):
-            if before_func:
-                before_func(*args, **kwargs)
-            result = target_func(*args, **kwargs)
-            if after_func:
-                after_func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator
-
-
-
-
-
-
-def research_task_complete(task_result):
-    name="research_task_complete"
-    from colorama import Back as B, Fore as F
-    print(F.LIGHTWHITE_EX+B.RED+name+F.RESET)
-    print(B.CYAN,F.BLACK)
-    pprint(task_result)
-    print(B.RESET,F.WHITE)
-
-def reporting_task_complete(task_result):
-    name = "reporting_task_complete"
-    from colorama import Back as B, Fore as F
-    print(F.LIGHTWHITE_EX+B.RED+name+F.RESET)
-    print(B.MAGENTA,F.BLACK)
-    pprint(task_result)
-    print(B.RESET,F.WHITE)
-
-def researcher_complete(agent_result):
-    name = "researcher_complete"
-    from colorama import Back as B, Fore as F
-    print(F.LIGHTWHITE_EX+B.RED+name+F.RESET)
-    print(B.BLUE,F.WHITE)
-    pprint(agent_result)
-    print(B.RESET,F.WHITE)
-
-def reporting_analyst_complete(agent_result):
-    name = "reporting_analyst_complete"
-    from colorama import Back as B, Fore as F
-    print(F.LIGHTWHITE_EX+B.RED+name+F.RESET)
-    print(B.GREEN,F.WHITE)
-    pprint(agent_result)
-    print(B.RESET,F.WHITE)
+def on_agent_completion(agent_result, **kwargs):
+    print(Fore.GREEN+Back.RED)
+    print(f"┌───────────────────────────────────────────────────────────────────────────────────────────────────┐")
+    print(f"│  {kwargs['name']}")
+    print(f"└───────────────────────────────────────────────────────────────────────────────────────────────────┘")
+    print(f"│  {agent_result}")
+    print(Fore.RESET+Back.RESET)

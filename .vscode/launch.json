@@ -13,7 +13,7 @@
             "justMyCode": false,
             "args": [
                 "--topic",      "analyze",
-                "-i",           "tmp/tmp2q_zmebb.txt",
+                "-i",           "tmp/short.txt",
                 "--server",     "OLLAMA",
                 "--verbose",    "2",
                 "--memory",     "1",

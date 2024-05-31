@@ -109,6 +109,7 @@ def run():
         'topic': gget("topic"), #'AI LLMs'
         'start_date': gget('start_date'),
         'end_date': gget('end_date'),
+        'file_path': gget("inputfile"),
      } 
     start_timer = time.time()
     NewsCrew().crew().kickoff(inputs=inputs)

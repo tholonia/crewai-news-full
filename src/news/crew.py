@@ -36,7 +36,7 @@ from crewai_tools import Tool
 search_name = "Search"
 search_desc = "useful for when you need to answer questions about current events"
 
-"""
+
 if gget('searcher') == "EXA":
     print(f"Using Search API: EXA")
     from src.news.lib.exa_search_tool import ExaSearchToolFull
@@ -94,7 +94,7 @@ else:
         max_tokens=4096,  # gpt-3.5 max_tokens = 4096
     )
 
-"""
+
 
 from langchain_openai import ChatOpenAI as OpenAI
 
@@ -108,7 +108,7 @@ llm_server = OpenAI(
 )
 
 from crewai_tools import FileReadTool
-file_read_tool = FileReadTool(file_path="/tmp/tmp2q_zmebb.txt")
+file_read_tool = FileReadTool
 
 
 # Create an outfile name root like output_file that looks like
@@ -118,25 +118,26 @@ file_read_tool = FileReadTool(file_path="/tmp/tmp2q_zmebb.txt")
 
 
 topic_stub=gget('topic')[:10].replace(" ", "-")
-report_dir = mkdir(f"reports-{topic_stub}")
-outbase = f"{report_dir}-{gget('server')[:3]}-{gget('LIVE_MODEL_NAME')}"
+# report_dir = mkdir(f"reports")
+# report_subdir = mkdir(f"reports/reports-{topic_stub}")
+report_subdir = f"reports/reports-{topic_stub}-{gget('server')[:3]}-{gget('LIVE_MODEL_NAME')}"
+# outbase = f"{report_subdir}{gget('server')[:3]}-{gget('LIVE_MODEL_NAME')}"
+# print(outbase)
+# exit()
 
-print(f"outbase: {outbase}")
-print(f"report_dir: {report_dir}")
-print(f"topic_stub: {topic_stub}")
+# print(f"outbase: {outbase}")
+# print(f"report_dir: {report_dir}")
+# print(f"topic_stub: {topic_stub}")
 
 
 
 
 
 from src.news.lib.tracing import (
-    reporting_analyst_tracer, 
-    reporting_task_tracer,
-    research_task_tracer, 
-    researcher_tracer,
-    # tracer,
     agent_tracer,
     task_tracer,
+    on_task_completion,
+    on_agent_completion,
     pre,
     post,
 )
@@ -150,7 +151,10 @@ class NewsCrew():
 
 
     @agent
-    # @agent_tracer(before_func=pre(name="researcher",colors=F.RED+B.BLACK), after_func=post(name="researcher"))
+    @agent_tracer(
+        before_func=pre(name="researcher",colors=F.RED+B.BLACK,), 
+        after_func=post(name="researcher",colors=F.RED+B.BLACK,),
+        )
     def researcher(self) -> Agent:
         print(("AGENT researcher"))
         stub = "A-researcher"
@@ -162,21 +166,16 @@ class NewsCrew():
             llm=llm_server,
             tools= [
                 file_read_tool,
-                # search_tool,
+                search_tool,
                 # web_rag_tool,
             ],
-            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
+            output_file=f"{report_subdir}/{gget('COUNTER')}-{stub}.md",
+            # callback=on_agent_completion(name="XXXXXX"),
             
         )
 
     @agent
-    @agent_tracer(
-        before_func=pre(
-            name="reporting_analyst",
-            colors=F.GREEN+B.BLACK), 
-        after_func=post(name="reporting_analyst")
-    
-    )
+    @agent_tracer(before_func=pre(name="reporting_analyst", colors=F.GREEN+B.BLACK), after_func=post(name="reporting_analyst",colors=F.GREEN+B.BLACK,))
     def reporting_analyst(self) -> Agent:
         print(("AGENT reporting_analyst"))
         stub = "A-reporting_analyst"
@@ -186,43 +185,60 @@ class NewsCrew():
             memory=bool(int(gget("memory"))),
             allow_delegation=bool(int(gget("delegation"))),
             llm=llm_server,
-            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
-            # callback=reporting_analyst_complete,
+            output_file=f"{report_subdir}/{gget('COUNTER')}-{stub}.md",
+            tools= [
+                file_read_tool,
+                search_tool,
+                # web_rag_tool,
+            ],
+            
+            # callback=on_agent_completion,
             
         )
 
     @task
-    @task_tracer(
-        before_func=pre(
-            name="research_task",
-            colors=F.CYAN+B.BLACK), 
-        after_func=post(name="research_task")
-    )
+    @task_tracer(before_func=pre(name="research_task", colors=F.CYAN+B.BLACK), after_func=post(name="research_task",colors=F.CYAN+B.BLACK,))
     
     def research_task(self) -> Task:
         print(("TASK research_task"))        
         stub = "T-research_task"
-        return Task(
+        rs = Task(
             config=self.tasks_config['research_task'],
             agent=self.researcher(),
-            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
-            # callback = research_task_complete,
+            output_file=f"{report_subdir}/{gget('COUNTER')}-{stub}.md",
+            callback=on_task_completion(name="NAME"),
+            tools= [
+                file_read_tool,
+                search_tool,
+                # web_rag_tool,
+            ],
         )
+        """
+        at this point, 'rs' is a tuple of tuples that hold the input parameters
+        """        
+        pprint(list(rs))
+        # exit()
+        return rs
 
     @task
-    # @reporting_task_tracer(before_func=pre(name="reporting_task",colors=F.MAGENTA+B.BLACK), after_func=post)
+    @task_tracer(before_func=pre(name="reporting_task", colors=F.MAGENTA+B.BLACK), after_func=post(name="reporting_task",colors=F.MAGENTA+B.BLACK,))
+    
     def reporting_task(self) -> Task:
         print(("TASK reporting_task"))        
         stub = "T-reporting_task"
-        # output_file = f"reports/{gget('COUNTER')}-{gget('server')}_{gget('LIVE_MODEL_NAME')}_{gget('topic')[:10].replace(' ','-')}.md"
-        return Task(
+        rs = Task(
             config=self.tasks_config['reporting_task'],
             agent=self.reporting_analyst(),
-            output_file=f"/{gget('COUNTER')}-{outbase}-{stub}-{topic_stub}.md",
-            # callback = reporting_task_complete,
-
-
+            output_file=f"{report_subdir}/{gget('COUNTER')}-{stub}.md",
+            callback=on_task_completion(name="AAAAAA"),
+            tools= [
+                file_read_tool,
+                search_tool,
+                # web_rag_tool,
+            ],
+            
         )
+        return rs       
 
     @crew
     def crew(self) -> Crew:
